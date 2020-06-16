@@ -1,18 +1,19 @@
 package cc.gasches.testassignment.service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import cc.gasches.testassignment.dto.CreateSectionRequest;
 import cc.gasches.testassignment.dto.GeologicalClassDto;
 import cc.gasches.testassignment.dto.SectionDto;
-import cc.gasches.testassignment.model.GeologicalClass;
+import cc.gasches.testassignment.dto.UpdateSectionRequest;
+import cc.gasches.testassignment.mapper.SectionMapper;
 import cc.gasches.testassignment.model.Section;
 import cc.gasches.testassignment.repository.SectionRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,24 +24,54 @@ public class SectionService {
     private static final Logger log = LoggerFactory.getLogger(SectionService.class);
 
     private final SectionRepository sectionRepository;
+    private final SectionMapper sectionMapper;
 
+    @Transactional
     public SectionDto createSection(CreateSectionRequest request) {
-        Section section = new Section();
-        section.setName(request.getName());
-        List<GeologicalClass> geologicalClasses =
-                Optional.ofNullable(request.getGeologicalClasses()).orElseGet(Collections::emptyList).stream()
-                        .map(geoClassDto -> new GeologicalClass(geoClassDto.getCode(), geoClassDto.getName()))
-                        .collect(Collectors.toList());
-        section.setGeologicalClasses(geologicalClasses);
-        Section storedSection = sectionRepository.save(section);
-        List<GeologicalClassDto> geoClassDtos = section.getGeologicalClasses().stream()
-                .map(geoClass -> new GeologicalClassDto(geoClass.getName(), geoClass.getCode()))
-                .collect(Collectors.toList());
-        return new SectionDto(storedSection.getId(), section.getName(), geoClassDtos);
+        Section section = sectionRepository.save(sectionMapper.requestToSection(request));
+        return sectionMapper.sectionToDto(section);
     }
 
+    @Transactional(readOnly = true)
     public List<SectionDto> getAllSections() {
-        return sectionRepository.findAll().stream().map(s -> new SectionDto(s.getId(), s.getName(), Collections.emptyList())).collect(
-                Collectors.toList());
+        return sectionMapper.sectionsToDtoList(sectionRepository.findAll());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SectionDto> findAllSectionsByGeoClassCode(String code) {
+        return sectionMapper.sectionsToDtoList(sectionRepository.findByGeologicalClasses_Code(code));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<SectionDto> getSectionById(long id) {
+        return sectionRepository.findById(id).map(sectionMapper::sectionToDto);
+    }
+
+    @Transactional
+    public Optional<SectionDto> updateSection(long id, UpdateSectionRequest request) {
+        Optional<Section> sectionOpt = sectionRepository.findById(id);
+        if (sectionOpt.isEmpty()) {
+            return Optional.empty();
+        }
+        Section section = sectionOpt.get();
+        if (!StringUtils.isBlank(request.getName())) {
+            section.setName(request.getName());
+        }
+        if (request.getGeologicalClasses() != null) {
+            section.clearGeologicalClasses();
+            for (GeologicalClassDto dto : request.getGeologicalClasses()) {
+                section.addGeologicalClass(sectionMapper.dtoToGeologicalClass(dto));
+            }
+        }
+        return Optional.of(sectionMapper.sectionToDto(sectionRepository.save(section)));
+    }
+
+    @Transactional
+    public boolean deleteSection(long id) {
+        if (sectionRepository.existsById(id)) {
+            sectionRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

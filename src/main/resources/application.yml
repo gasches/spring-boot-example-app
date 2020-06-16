@@ -3,8 +3,45 @@ spring:
     url: jdbc:h2:mem:testdb
     username: sa
     password: password
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 3
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        physical_naming_strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        id.new_generator_mappings: false
+        jdbc.batch_size: 10
+        order_inserts: true
+        order_updates: true
+        show_sql: true
+        hbm2ddl.auto: none
+    open-in-view: false
   flyway:
     sql-migration-prefix: v
     sql-migration-separator: .
+
+logbook:
+  include:
+    - /sections/**
+  filter.enabled: true
+  format.style: http
+  strategy: body-only-if-status-at-least
+  minimum-status: 200
+
+logging:
+  level:
+    cc.gasches.testassignment: DEBUG
+    com.zaxxer:
+      hikari: TRACE
+      hikari.HikariConfig: DEBUG
+    org.zalando.logbook.Logbook: TRACE
+
+management.endpoints.web.exposure.include: health, info
+
+app:
+  bcrypt-strength: 12
+  csv-delimiter: ;
+  import-period: 60_000
+  export-period: 60_000

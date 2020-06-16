@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GeologicalClassDto {
+public class CreateUserDto {
 
     @NotBlank
     private String name;
 
     @NotBlank
-    private String code;
+    private String password;
 }

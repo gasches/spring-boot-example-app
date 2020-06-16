@@ -2,12 +2,12 @@ package cc.gasches.testassignment.dto;
 
 import java.util.List;
 
-import lombok.Value;
+import lombok.Data;
 
-@Value
+@Data
 public class SectionDto {
 
-    long id;
-    String name;
-    List<GeologicalClassDto> geologicalClasses;
+    private long id;
+    private String name;
+    private List<GeologicalClassDto> geologicalClasses;
 }

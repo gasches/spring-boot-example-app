@@ -44,4 +44,10 @@ public class Section {
             geoClass.setSection(null);
         }
     }
+
+    public void clearGeologicalClasses() {
+        if (geologicalClasses != null) {
+            geologicalClasses.clear();
+        }
+    }
 }

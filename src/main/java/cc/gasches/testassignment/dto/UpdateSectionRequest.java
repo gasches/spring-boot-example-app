@@ -3,14 +3,12 @@ package cc.gasches.testassignment.dto;
 import java.util.List;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 
 import lombok.Data;
 
 @Data
-public class CreateSectionRequest {
+public class UpdateSectionRequest {
 
-    @NotBlank
     private String name;
 
     @Valid
